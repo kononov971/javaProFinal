@@ -1,0 +1,22 @@
+spring:
+  application:
+    name: JavaProFinal
+  datasource:
+    url: jdbc:postgresql://localhost:5432/java_pro_final
+    username: postgres
+    password: root
+  jpa:
+    show-sql: true
+
+server:
+  port: 8289
+
+integrations:
+  executors:
+    transactions-executor-client:
+      url: "http://localhost:8281/api/v1/transactions"
+      connect-timeout: 1s
+      read-timeout: 30s
+
+limits:
+  default-value: 10000
