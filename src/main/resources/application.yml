@@ -1,0 +1,15 @@
+spring:
+  application:
+    name: JavaProFinal
+  datasource:
+    url: jdbc:postgresql://localhost:5432/java_pro_final
+    username: postgres
+    password: root
+  jpa:
+    show-sql: true
+
+server:
+  port: 8289
+
+limits:
+  default-value: 10000
