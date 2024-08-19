@@ -16,14 +16,23 @@ public class LimitController {
         this.limitService = limitService;
     }
 
-    @GetMapping("/{id}")
-    public LimitDTO getLimit(@PathVariable Long id) {
-        return limitService.getLimit(id);
+    @GetMapping("/{userId}")
+    public LimitDTO getLimit(@PathVariable Long userId) {
+        return limitService.getUserLimit(userId);
     }
 
-    @PostMapping("/{id}")
-    public LimitDTO makePayment(@PathVariable Long id, @RequestBody BigDecimal paymentAmount) {
-        return limitService.makePayment(id, paymentAmount);
+    @PatchMapping("/{userId}")
+    public LimitDTO changeLimit(@PathVariable Long userId, @RequestBody BigDecimal amount) {
+        return limitService.setLimit(userId, amount);
     }
 
+    @PostMapping("/decrease/{userId}")
+    public LimitDTO decreaseLimit(@PathVariable Long userId, @RequestBody BigDecimal amount) {
+        return limitService.decreaseUserLimit(userId, amount);
+    }
+
+    @PostMapping("/increase/{userId}")
+    public LimitDTO increaseLimit(@PathVariable Long userId, @RequestBody BigDecimal amount) {
+        return limitService.increaseUserLimit(userId, amount);
+    }
 }

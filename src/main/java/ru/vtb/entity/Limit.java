@@ -15,6 +15,9 @@ import java.math.BigDecimal;
 @Table(name = "limits")
 public class Limit {
     @Id
+    @Column(name = "id")
+    private Long id;
+
     @Column(name = "user_id")
     private Long userId;
 

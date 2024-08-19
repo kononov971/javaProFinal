@@ -11,12 +11,5 @@ spring:
 server:
   port: 8289
 
-integrations:
-  executors:
-    transactions-executor-client:
-      url: "http://localhost:8281/api/v1/transactions"
-      connect-timeout: 1s
-      read-timeout: 30s
-
 limits:
   default-value: 10000

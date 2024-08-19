@@ -20,37 +20,45 @@ public class LimitService {
 
     private final LimitRepository limitRepository;
     private final LimitsProperties limitsProperties;
-    private final RestTemplate restTemplate;
 
-    public LimitService(LimitRepository limitRepository, LimitsProperties limitsProperties, RestTemplate restTemplate) {
+    public LimitService(LimitRepository limitRepository, LimitsProperties limitsProperties) {
         this.limitRepository = limitRepository;
         this.limitsProperties = limitsProperties;
-        this.restTemplate = restTemplate;
     }
 
-    public LimitDTO getLimit(Long userId) {
+    public LimitDTO getUserLimit(Long userId) {
         Limit limit = limitRepository.findByUserId(userId).orElse(newLimit(userId));
 
         return limitDTOFromLimit(limit);
     }
 
-    public LimitDTO makePayment(Long userId, BigDecimal paymentAmount) {
+    public LimitDTO increaseUserLimit(Long userId, BigDecimal amount) {
         Limit limit = limitRepository.findByUserId(userId).orElse(newLimit(userId));
-        BigDecimal valueLimit = limit.getLimitAmount();
 
-        if (valueLimit.compareTo(paymentAmount) < 0) {
-            throw new LimitException("Current limit of user " + userId + " is " + valueLimit + ", but payment amount is " + paymentAmount);
+        limit.setLimitAmount(limit.getLimitAmount().add(amount));
+        limitRepository.save(limit);
+
+        return limitDTOFromLimit(limit);
+    }
+
+    public LimitDTO decreaseUserLimit(Long userId, BigDecimal amount) {
+        Limit limit = limitRepository.findByUserId(userId).orElse(newLimit(userId));
+
+        if (limit.getLimitAmount().compareTo(amount) < 0) {
+            throw new LimitException("Current limit of user " + userId + " is " + limit.getLimitAmount() + ", but payment amount is " + amount);
         } else {
-            limit.setLimitAmount(valueLimit.subtract(paymentAmount));
+            limit.setLimitAmount(limit.getLimitAmount().subtract(amount));
             limitRepository.save(limit);
-            limitRepository.flush();
         }
 
-        if (!makeTransaction(userId, paymentAmount)) {
-            limit.setLimitAmount(valueLimit);
-            limitRepository.save(limit);
-            throw new TransactionException("Transaction not executed");
-        }
+        return limitDTOFromLimit(limit);
+    }
+
+    public LimitDTO setLimit(Long userId, BigDecimal amount) {
+        Limit limit = limitRepository.findByUserId(userId).orElse(newLimit(userId));
+
+        limit.setLimitAmount(amount);
+        limitRepository.save(limit);
 
         return limitDTOFromLimit(limit);
     }
@@ -69,19 +77,9 @@ public class LimitService {
         return limit;
     }
 
-    private boolean makeTransaction(Long userId, BigDecimal paymentAmount) {
-        TransactionResponseDTO response;
-        try {
-            response = restTemplate.postForObject("/execute/" + userId, paymentAmount, TransactionResponseDTO.class);
-        } catch (HttpClientErrorException e) {
-            throw new TransactionException(e.getMessage());
-        }
-
-        return response.isSuccess();
-    }
-
     private LimitDTO limitDTOFromLimit(Limit limit) {
         return new LimitDTO(
+                limit.getId(),
                 limit.getUserId(),
                 limit.getLimitAmount()
         );
